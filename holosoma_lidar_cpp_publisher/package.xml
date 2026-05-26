@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>holosoma_lidar_cpp_publisher</name>
+  <version>0.0.1</version>
+  <description>C++ ROS2 publisher for MuJoCo LiDAR frames streamed from Holosoma.</description>
+
+  <maintainer email="phc@example.com">phc</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>livox_ros_driver2</depend>
+
+  <build_depend>libzmq3-dev</build_depend>
+  <exec_depend>libzmq3-dev</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
