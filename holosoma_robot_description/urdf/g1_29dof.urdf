@@ -603,7 +603,8 @@
                      izz="0.001807911"/>
         </inertial>
         <visual>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <!-- <origin xyz="0 0 0" rpy="0 0 0"/> -->
+            <origin xyz="-0.0110365 0 -0.484" rpy="0 0 0"/>
             <geometry>
                 <mesh filename="package://holosoma_robot_description/urdf/meshes/head_link.STL"/>
             </geometry>
@@ -612,12 +613,12 @@
             </material>
         </visual>
     </link>
-    <joint name="head_joint" type="fixed">
-        <origin xyz="0.0039635 0 -0.044" rpy="0 0 0"/>
+    <joint name="head_joint" type="fixed" dont_collapse="true">
+        <!-- <origin xyz="0.0039635 0 -0.044" rpy="0 0 0"/> -->
+        <origin xyz="0.015 0 0.43" rpy="0 0 0"/>
         <parent link="torso_link"/>
         <child link="head_link"/>
     </joint>
-
 
     <!-- IMU -->
     <link name="imu_in_torso">
@@ -670,9 +671,43 @@
         </visual>
     </link>
     <joint name="mid360_joint" type="fixed">
-        <origin xyz="0.0002835 0.00003 0.41618" rpy="0 3.101 3.1415"/>
+        <origin xyz="0.0002835 0.00003 0.41618" rpy="0 0.04014257279586953 0"/>
         <parent link="torso_link"/>
         <child link="mid360_link"/>
+    </joint>
+    <link name="mid360_link_frame">
+        <!-- Invisible visual required for USD conversion: IsaacLab expects visual prims for all links to avoid "Unresolved reference prim path" errors -->
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="invisible">
+                <color rgba="0 0 0 0"/>
+            </material>
+        </visual>
+    </link>
+    <joint name="mid360_frame_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="3.14159 0 0"/>
+        <parent link="mid360_link"/>
+        <child link="mid360_link_frame"/>
+    </joint>
+    <link name="mid360_link_IMU">
+        <!-- Invisible visual required for USD conversion: IsaacLab expects visual prims for all links to avoid "Unresolved reference prim path" errors -->
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="invisible">
+                <color rgba="0 0 0 0"/>
+            </material>
+        </visual>
+    </link>
+    <joint name="mid360_imu_joint" type="fixed">
+        <origin xyz="0.011 0.02329 -0.04412" rpy="0 0 0"/>
+        <parent link="mid360_link_frame"/>
+        <child link="mid360_link_IMU"/>
     </joint>
 
     <!-- Arm -->
@@ -851,12 +886,12 @@
                 <color rgba="0.7 0.7 0.7 1"/>
             </material>
         </visual>
-        <!-- <collision>
+        <collision>
             <origin xyz="0.075 0 0" rpy="0 -1.5708 0"/>
             <geometry>
                 <cylinder radius="0.05" length="0.05"/>
             </geometry>
-        </collision> -->
+        </collision>
     </link>
     <joint name="left_hand_palm_joint" type="fixed">
         <origin xyz="0.0415 0.003 0" rpy="0 0 0"/>
@@ -879,12 +914,6 @@
                 <color rgba="0.7 0.7 0.7 1"/>
             </material>
         </visual>
-        <collision name="left_hand_collision_halfsphere">
-            <origin xyz="0 0 0" rpy="0 1.5708 0"/>
-            <geometry>
-                <mesh filename="package://holosoma_robot_description/urdf/meshes/half_sphere.obj"/>
-            </geometry>
-        </collision>
     </link>
     <link name="right_shoulder_pitch_link">
         <inertial>
@@ -1061,12 +1090,12 @@
                 <color rgba="0.7 0.7 0.7 1"/>
             </material>
         </visual>
-        <!-- <collision>
+        <collision>
             <origin xyz="0.075 0 0" rpy="0 -1.5708 0"/>
             <geometry>
                 <cylinder radius="0.05" length="0.05"/>
             </geometry>
-        </collision> -->
+        </collision>
     </link>
     <joint name="right_hand_palm_joint" type="fixed">
         <origin xyz="0.0415 -0.003 0" rpy="0 0 0"/>
@@ -1089,12 +1118,6 @@
                 <color rgba="0.7 0.7 0.7 1"/>
             </material>
         </visual>
-        <collision name="right_hand_collision_halfsphere">
-            <origin xyz="0 0 0" rpy="0 1.5708 0"/>
-            <geometry>
-                <mesh filename="package://holosoma_robot_description/urdf/meshes/half_sphere.obj"/>
-            </geometry>
-        </collision>
     </link>
 
     <link name="LL_FOOT">
