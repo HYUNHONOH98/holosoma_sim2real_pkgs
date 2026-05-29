@@ -28,6 +28,7 @@ setup(
     install_requires=["setuptools"],
     entry_points={
         "console_scripts": [
+            "initial_map_frame_bootstrap = holosoma_robot_description.initial_map_frame_bootstrap:main",
             "robot_state_to_joint_state = holosoma_robot_description.robot_state_to_joint_state:main",
             "unitree_lowstate_to_joint_state = holosoma_robot_description.unitree_lowstate_to_joint_state:main",
         ],
