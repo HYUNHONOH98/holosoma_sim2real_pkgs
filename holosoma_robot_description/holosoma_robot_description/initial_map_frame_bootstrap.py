@@ -8,6 +8,22 @@ from rclpy.time import Time
 from tf2_ros import Buffer, StaticTransformBroadcaster, TransformException, TransformListener
 
 
+def _quaternion_from_rpy(roll: float, pitch: float, yaw: float) -> tuple[float, float, float, float]:
+    cy = math.cos(yaw * 0.5)
+    sy = math.sin(yaw * 0.5)
+    cp = math.cos(pitch * 0.5)
+    sp = math.sin(pitch * 0.5)
+    cr = math.cos(roll * 0.5)
+    sr = math.sin(roll * 0.5)
+
+    return (
+        sr * cp * cy - cr * sp * sy,
+        cr * sp * cy + sr * cp * sy,
+        cr * cp * sy - sr * sp * cy,
+        cr * cp * cy + sr * sp * sy,
+    )
+
+
 class InitialMapFrameBootstrap(Node):
     def __init__(self) -> None:
         super().__init__("initial_map_frame_bootstrap")
@@ -19,6 +35,9 @@ class InitialMapFrameBootstrap(Node):
         self.declare_parameter("right_foot_frame_id", "LR_FOOT")
         self.declare_parameter("height_mode", "average_abs_z")
         self.declare_parameter("map_to_odom_z_sign", 1.0)
+        self.declare_parameter("map_to_odom_roll", 0.0)
+        self.declare_parameter("map_to_odom_pitch", 0.0)
+        self.declare_parameter("map_to_odom_yaw", 0.0)
         self.declare_parameter("startup_timeout_sec", 10.0)
         self.declare_parameter("fallback_initial_z", 0.0)
         self.declare_parameter("retry_period_sec", 0.1)
@@ -30,6 +49,12 @@ class InitialMapFrameBootstrap(Node):
         self._right_foot_frame_id = self.get_parameter("right_foot_frame_id").get_parameter_value().string_value
         self._height_mode = self.get_parameter("height_mode").get_parameter_value().string_value
         self._z_sign = self.get_parameter("map_to_odom_z_sign").get_parameter_value().double_value
+        self._map_to_odom_rpy = (
+            self.get_parameter("map_to_odom_roll").get_parameter_value().double_value,
+            self.get_parameter("map_to_odom_pitch").get_parameter_value().double_value,
+            self.get_parameter("map_to_odom_yaw").get_parameter_value().double_value,
+        )
+        self._map_to_odom_quat = _quaternion_from_rpy(*self._map_to_odom_rpy)
         self._startup_timeout_sec = self.get_parameter("startup_timeout_sec").get_parameter_value().double_value
         self._fallback_initial_z = self.get_parameter("fallback_initial_z").get_parameter_value().double_value
         retry_period_sec = self.get_parameter("retry_period_sec").get_parameter_value().double_value
@@ -96,18 +121,20 @@ class InitialMapFrameBootstrap(Node):
         transform.transform.translation.x = 0.0
         transform.transform.translation.y = 0.0
         transform.transform.translation.z = self._z_sign * initial_z
-        transform.transform.rotation.x = 0.0
-        transform.transform.rotation.y = 0.0
-        transform.transform.rotation.z = 0.0
-        transform.transform.rotation.w = 1.0
+        transform.transform.rotation.x = self._map_to_odom_quat[0]
+        transform.transform.rotation.y = self._map_to_odom_quat[1]
+        transform.transform.rotation.z = self._map_to_odom_quat[2]
+        transform.transform.rotation.w = self._map_to_odom_quat[3]
 
         self._static_broadcaster.sendTransform(transform)
         self._published = True
         self.get_logger().info(
-            "Published static {} -> {} with z={:.3f} from foot z values left={} right={}".format(
+            "Published static {} -> {} with z={:.3f}, rpy=({:.3f}, {:.3f}, {:.3f}) "
+            "from foot z values left={} right={}".format(
                 self._map_frame_id,
                 self._odom_frame_id,
                 transform.transform.translation.z,
+                *self._map_to_odom_rpy,
                 "nan" if math.isnan(left_z) else "{:.3f}".format(left_z),
                 "nan" if math.isnan(right_z) else "{:.3f}".format(right_z),
             )
